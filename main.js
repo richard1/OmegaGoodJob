@@ -1,7 +1,15 @@
 var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game_div');
-var speed = 0;
+var speed = 100;
 var score = 0;
 var scoreText;
+var numStars = 0;
+
+// keyboard codes for key events
+var KEYCODE_A = 65;
+var KEYCODE_D = 68;
+var KEYCODE_S = 83;
+var KEYCODE_W = 87;
+var KEYCODE_SPACE = 32;
 
 var main_state = {
 
@@ -13,71 +21,49 @@ var main_state = {
 	},
 
 	create: function() {
-		//  We're going to be using physics, so enable the Arcade Physics system
 		game.physics.startSystem(Phaser.Physics.ARCADE);
- 
-		//  A simple background for our game
 		game.add.sprite(0, 0, 'sky');
  
-		//  The platforms group contains the ground and the 2 ledges we can jump on
 		platforms = game.add.group();
- 
-		//  We will enable physics for any object that is created in this group
 		platforms.enableBody = true;
  
-		// Here we create the ground.
+ 		// the ground - enable physics but make immovable
 		var ground = platforms.create(0, game.world.height - 64, 'ground');
+ 		ground.scale.setTo(2, 2);
+ 		ground.body.immovable = true;
  
-		//  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-		ground.scale.setTo(2, 2);
- 
-		//  This stops it from falling away when you jump on it
-		ground.body.immovable = true;
- 
-		//  Now let's create two ledges
+ 		// the ledges - also immovable
 		var ledge = platforms.create(400, 400, 'ground');
- 
 		ledge.body.immovable = true;
- 
 		ledge = platforms.create(-150, 250, 'ground');
- 
 		ledge.body.immovable = true;
 	
-		// The player and its settings
+		// the player and its settings
 		player = game.add.sprite(32, game.world.height - 150, 'dude');
+ 		game.physics.arcade.enable(player);
  
-		//  We need to enable physics on the player
-		game.physics.arcade.enable(player);
- 
-		//  Player physics properties. Give the little guy a slight bounce.
-		player.body.bounce.y = 0.2;
-		player.body.gravity.y = 300;
+		// player physics properties
+		player.body.bounce.y = 0.1;
+		player.body.gravity.y = 1500;
 		player.body.collideWorldBounds = true;
  
-		//  Our two animations, walking left and right.
+		// player's two animations, walking left and right
 		player.animations.add('left', [0, 1, 2, 3], 10, true);
 		player.animations.add('right', [5, 6, 7, 8], 10, true);
 	
 		cursors = game.input.keyboard.createCursorKeys();
 	
 		stars = game.add.group();
- 
 		stars.enableBody = true;
- 
-		//  Here we'll create 12 of them evenly spaced apart
-		for (var i = 0; i < 12; i++)
-		{
-			//  Create a star inside of the 'stars' group
-			var star = stars.create(i * 70, 0, 'star');
- 
-			//  Let gravity do its thing
-			star.body.gravity.y = 12;
- 
-			//  This just gives each star a slightly random bounce value
-			star.body.bounce.y = 0.7 + Math.random() * 0.2;
-		}
 	
-		scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+		scoreText = game.add.text(16, 16, 'Stars: ' + numStars, { fontSize: '32px', fill: '#000' });
+		
+		mouse = new Phaser.Mouse(game);
+		mouse.start();
+		mouse.mouseUpCallback = this.mouseUp;
+		
+		keyboard = new Phaser.Keyboard(game);
+		keyboard.start();
 	},
 
 	update: function() {
@@ -87,22 +73,19 @@ var main_state = {
 		//  Reset the players velocity (movement)
 		player.body.velocity.x = 0;
  
-		if (cursors.left.isDown)
-		{
+		if (cursors.left.isDown || keyboard.isDown(KEYCODE_A)) {
 			//  Move to the left
 			player.body.velocity.x = -150 - speed;
  
 			player.animations.play('left');
 		}
-		else if (cursors.right.isDown)
-		{
+		else if (cursors.right.isDown || keyboard.isDown(KEYCODE_D)) {
 			//  Move to the right
 			player.body.velocity.x = 150 + speed;
  
 			player.animations.play('right');
 		}
-		else
-		{
+		else {
 			//  Stand still
 			player.animations.stop();
  
@@ -110,22 +93,49 @@ var main_state = {
 		}
 	
 		//  Allow the player to jump if they are touching the ground.
-		if (cursors.up.isDown && player.body.touching.down)
-		{
-			player.body.velocity.y = -350;
+		if ((cursors.up.isDown || keyboard.isDown(KEYCODE_W) ||
+			keyboard.isDown(KEYCODE_SPACE)) && player.body.touching.down) {
+			player.body.velocity.y = -800;
 		}
 	
+		// stars collide with each other and platforms
 		game.physics.arcade.collide(stars, platforms);
+		game.physics.arcade.collide(stars, stars);
 	
-		game.physics.arcade.overlap(player, stars, this.collectStar, null, this);
+		//game.physics.arcade.overlap(player, stars, this.collectStar, null, this);
+	},
+	
+	mouseUp: function() {
+		var x = mouse.event.screenX - 57;
+		var y = mouse.event.screenY - 93;
+		var playerX = player.body.right - player.body.width * 0.5;
+		var playerY = player.body.bottom - player.body.height * 0.5;
+		numStars++;
+		scoreText.text = 'Stars: ' + numStars;
+
+		if(x > playerX)		player.animations.play('right');
+		else				player.animations.play('left');
+		
+		var star = stars.create(playerX, playerY, 'star');
+
+		var hyp = Math.sqrt( (x - playerX) * (x - playerX) +
+			(y - playerY) * (y - playerY) );
+		var normX = (x - playerX) / hyp * 500;
+		var normY = (y - playerY) / hyp * 500;
+
+		star.body.velocity = new Phaser.Point(normX, normY);
+		star.body.rebound = true;
+		star.body.collideWorldBounds = true;
+		game.physics.enable(star, Phaser.Physics.ARCADE);
+		star.body.bounce.setTo(1, 1);
 	},
 
 	collectStar: function(player, star) {
 	
-		// Removes the star from the screen
+		// removes the star from the screen
 		star.kill();
  
-		//  Add and update the score
+		// add and update the score
 		score += 10;
 		scoreText.text = 'Score: ' + score;
 	
