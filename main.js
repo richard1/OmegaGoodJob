@@ -162,12 +162,6 @@ var main_state = {
 
         if(Phaser.Rectangle.intersects(npc.getBounds(), stars.getBounds())) {
 		    game.physics.arcade.overlap(npc, stars, this.collectStar, null, this);
-            following = 1;
-            timeOfSeduction = Date.now();
-            if(shiroSpeed < 100)
-                shiroSpeed += 2;
-            if(!this.niiPlaying())
-                nii[(currentNii++ % nii.length)].play();
         }
 
         if(following === 1) {
@@ -254,7 +248,12 @@ var main_state = {
 		score += 10;
 		//scoreText.text = 'Score: ' + score;
 	
-		//speed += 10;
+        following = 1;
+        timeOfSeduction = Date.now();
+        if(shiroSpeed < 100)
+            shiroSpeed += 2;
+        if(!this.niiPlaying())
+            nii[(currentNii++ % nii.length)].play();
 	},
 
     niiPlaying: function() {
