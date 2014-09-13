@@ -11,13 +11,25 @@
             margin: 0;
         }
     </style>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#music').get(0).volume = 0.1;
+        });
+    </script>
 </head>
 <body>
 
 
 <div id="game_div"> </div>
 
-<iframe width="800" height="50" src="http://www.youtube.com/embed/zJGMAMO_Xt8?autoplay=1&loop=1&playlist=zJGMAMO_Xt8&color=white&autohide=1" frameborder="0" allowfullscreen></iframe>​
+<audio id="music" autoplay loop>
+    <source src="assets/Oracion.mp3" type="audio/mpeg">
+    Your browser is bad, and you should feel bad
+</audio>
 
+<!--
+<iframe width="800" height="50" src="http://www.youtube.com/embed/0iOkl1M5IFE?autoplay=1&loop=1&playlist=0iOkl1M5IFE&color=white&autohide=1" frameborder="0" allowfullscreen></iframe>​
+-->
 </body>
 </html>

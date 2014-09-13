@@ -4,6 +4,12 @@ var score = 0;
 var scoreText;
 var numStars = 0;
 var oldFrame = 1;
+var following = 0;
+var timeOfSeduction = 0;
+var shiroSpeed = 0;
+var consecHits = 0;
+var nii = [];
+var currentNii = 0;
 
 // keyboard codes for key events
 var KEYCODE_A = 65;
@@ -11,6 +17,9 @@ var KEYCODE_D = 68;
 var KEYCODE_S = 83;
 var KEYCODE_W = 87;
 var KEYCODE_SPACE = 32;
+var SHIRO_WITH_NII = 0xFFFFFF;
+var SHIRO_ALMOST_NII = 0xAAAAAA;
+var SHIRO_NO_NII = 0x555555;
 
 var main_state = {
 
@@ -19,9 +28,18 @@ var main_state = {
 		game.load.image('ground', 'assets/platform2.png');
 		game.load.image('star', 'assets/heart.png');
 		//game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
-		game.load.spritesheet('dude', 'assets/sorasprite.png', 80, 80);
+		game.load.spritesheet('shiro', 'assets/shirosprite.png', 80, 80);
+        game.load.spritesheet('sora', 'assets/sorasprite.png', 80, 80);
 		
 		game.load.audio('sfx', 'assets/shoot.wav');
+        game.load.audio('nii1', 'assets/nii1.mp3');
+        game.load.audio('nii2', 'assets/nii2.mp3');
+        game.load.audio('nii3', 'assets/nii3.mp3');
+        game.load.audio('nii4', 'assets/nii4.mp3');
+        game.load.audio('nii5', 'assets/nii5.mp3');
+        game.load.audio('nii6', 'assets/nii6.mp3');
+        game.load.audio('nii7', 'assets/nii7.mp3');
+        game.load.audio('nii8', 'assets/nii8.mp3');
 	},
 
 	create: function() {
@@ -43,13 +61,20 @@ var main_state = {
 		ledge.body.immovable = true;
 	
 		// the player and its settings
-		player = game.add.sprite(32, game.world.height - 150, 'dude');
- 		game.physics.arcade.enable(player);
+		player = game.add.sprite(32, game.world.height - 150, 'sora');
+        npc = game.add.sprite(16, 150, 'shiro');
+        game.physics.arcade.enable(player);
+ 		game.physics.arcade.enable(npc);
  
 		// player physics properties
 		player.body.bounce.y = 0.1;
 		player.body.gravity.y = 1500;
 		player.body.collideWorldBounds = true;
+		
+        // npc physics properties
+		npc.body.bounce.y = 0.1;
+		npc.body.gravity.y = 1500;
+		npc.body.collideWorldBounds = true;
  
 		// player's two animations, walking left and right
 		/*
@@ -58,8 +83,8 @@ var main_state = {
 		*/
 		
 		player.frame = 1;
-		player.animations.add('left', [1], 10, true);
-		player.animations.add('right', [0], 10, true);
+
+        npc.frame = 0;
 	
 		cursors = game.input.keyboard.createCursorKeys();
 	
@@ -67,6 +92,11 @@ var main_state = {
 		stars.enableBody = true;
 	
 		//scoreText = game.add.text(16, 16, 'Stars: ' + numStars, { fontSize: '32px', fill: '#000' });
+		
+        //npc.body.rebound = true;
+		//npc.body.collideWorldBounds = true;
+		//game.physics.enable(npc, Phaser.Physics.ARCADE);
+		//npc.body.bounce.setTo(1, 1);
 		
 		mouse = new Phaser.Mouse(game);
 		mouse.start();
@@ -76,12 +106,26 @@ var main_state = {
 		keyboard.start();
 		
 		fx = game.add.audio('sfx');
+        nii = [
+            game.add.audio('nii1'),
+            game.add.audio('nii2'),
+            game.add.audio('nii3'),
+            game.add.audio('nii4'),
+            game.add.audio('nii5'),
+            game.add.audio('nii6'),
+            game.add.audio('nii7'),
+            game.add.audio('nii8'),
+        ];
+        npc.tint = SHIRO_NO_NII;
 	},
 
 	update: function() {
 		//  Collide the player and the stars with the platforms
 		game.physics.arcade.collide(player, platforms);
-	
+
+        game.physics.arcade.collide(npc, platforms);
+        //game.physics.arcade.collide(stars, npc);
+		
 		//  Reset the players velocity (movement)
 		player.body.velocity.x = 0;
  
@@ -115,8 +159,47 @@ var main_state = {
 		// stars collide with each other and platforms
 		game.physics.arcade.collide(stars, platforms);
 		game.physics.arcade.collide(stars, stars);
-	
-		//game.physics.arcade.overlap(player, stars, this.collectStar, null, this);
+
+        if(Phaser.Rectangle.intersects(npc.getBounds(), stars.getBounds())) {
+		    game.physics.arcade.overlap(npc, stars, this.collectStar, null, this);
+            following = 1;
+            timeOfSeduction = Date.now();
+            if(shiroSpeed < 100)
+                shiroSpeed += 2;
+            if(!this.niiPlaying())
+                nii[(currentNii++ % nii.length)].play();
+        }
+
+        if(following === 1) {
+            npc.tint = SHIRO_NO_NII;
+            if(Math.abs((npc.x + npc.body.width * 0.5) - (player.x + player.body.width * 0.5)) < 30) {
+                npc.body.velocity.x = 0;
+                if(Math.abs((npc.y + npc.body.height * 0.5) - (player.y + player.body.height * 0.5)) < 30) {
+                    npc.tint = SHIRO_WITH_NII;
+                }
+            }
+            else if(npc.x < player.x) {
+                npc.body.velocity.x = 150 + shiroSpeed;
+                npc.frame = 1;
+            }
+            else if(npc.x > player.x) {
+                npc.body.velocity.x = -150 - shiroSpeed;
+                npc.frame = 0;
+            }
+
+            if((npc.body.bottom - player.body.bottom) > 30) {
+                npc.body.velocity.y = -800;
+            }
+
+            if(Date.now() - timeOfSeduction > 3000) {
+                following = 0;
+                npc.body.velocity.x = 0;
+                shiroSpeed = 0;
+                npc.tint = SHIRO_NO_NII;
+            }
+        }
+
+		//game.physics.arcade.overlap(npc, stars, this.collectStar, null, this);
 		oldFrame = player.frame;
 	},
 	
@@ -163,7 +246,7 @@ var main_state = {
 	},
 
 	collectStar: function(player, star) {
-	
+
 		// removes the star from the screen
 		star.kill();
  
@@ -171,8 +254,16 @@ var main_state = {
 		score += 10;
 		//scoreText.text = 'Score: ' + score;
 	
-		speed += 10;
-	}
+		//speed += 10;
+	},
+
+    niiPlaying: function() {
+        for(var i = 0; i < nii.length; i++) {
+            if(nii[i].isPlaying)
+                return true;
+        }
+        return false;
+    }
 }
 
 game.state.add('main', main_state);
