@@ -62,19 +62,19 @@ var main_state = {
 	
 		// the player and its settings
 		player = game.add.sprite(32, game.world.height - 150, 'sora');
-        npc = game.add.sprite(16, 150, 'shiro');
+        shiro = game.add.sprite(16, 150, 'shiro');
         game.physics.arcade.enable(player);
- 		game.physics.arcade.enable(npc);
+ 		game.physics.arcade.enable(shiro);
  
 		// player physics properties
 		player.body.bounce.y = 0.1;
 		player.body.gravity.y = 1500;
 		player.body.collideWorldBounds = true;
 		
-        // npc physics properties
-		npc.body.bounce.y = 0.1;
-		npc.body.gravity.y = 1500;
-		npc.body.collideWorldBounds = true;
+        // shiro physics properties
+		shiro.body.bounce.y = 0.1;
+		shiro.body.gravity.y = 1500;
+		shiro.body.collideWorldBounds = true;
  
 		// player's two animations, walking left and right
 		/*
@@ -84,7 +84,7 @@ var main_state = {
 		
 		player.frame = 1;
 
-        npc.frame = 0;
+        shiro.frame = 0;
 	
 		cursors = game.input.keyboard.createCursorKeys();
 	
@@ -93,11 +93,13 @@ var main_state = {
 	
 		//scoreText = game.add.text(16, 16, 'Stars: ' + numStars, { fontSize: '32px', fill: '#000' });
 		
-        npc.body.rebound = true;
-		npc.body.collideWorldBounds = true;
-		game.physics.enable(npc, Phaser.Physics.ARCADE);
-		npc.body.bounce.setTo(1, 1);
-		
+        /*
+        shiro.body.rebound = true;
+		shiro.body.collideWorldBounds = true;
+		game.physics.enable(shiro, Phaser.Physics.ARCADE);
+		shiro.body.bounce.setTo(1, 1);
+		*/
+
 		mouse = new Phaser.Mouse(game);
 		mouse.start();
 		mouse.mouseUpCallback = this.mouseUp;
@@ -116,15 +118,15 @@ var main_state = {
             game.add.audio('nii7'),
             game.add.audio('nii8'),
         ];
-        npc.tint = SHIRO_NO_NII;
+        shiro.tint = SHIRO_NO_NII;
 	},
 
 	update: function() {
 		//  Collide the player and the stars with the platforms
 		game.physics.arcade.collide(player, platforms);
 
-        game.physics.arcade.collide(npc, platforms);
-        //game.physics.arcade.collide(stars, npc);
+        game.physics.arcade.collide(shiro, platforms);
+        //game.physics.arcade.collide(stars, shiro);
 		
 		//  Reset the players velocity (movement)
 		player.body.velocity.x = 0;
@@ -160,40 +162,40 @@ var main_state = {
 		game.physics.arcade.collide(stars, platforms);
 		game.physics.arcade.collide(stars, stars);
 
-        if(Phaser.Rectangle.intersects(npc.getBounds(), stars.getBounds())) {
-		    game.physics.arcade.overlap(npc, stars, this.collectStar, null, this);
+        if(Phaser.Rectangle.intersects(shiro.getBounds(), stars.getBounds())) {
+		    game.physics.arcade.overlap(shiro, stars, this.collectStar, null, this);
         }
 
         if(following === 1) {
-            npc.tint = SHIRO_NO_NII;
-            if(Math.abs((npc.x + npc.body.width * 0.5) - (player.x + player.body.width * 0.5)) < 30) {
-                npc.body.velocity.x = 0;
-                if(Math.abs((npc.y + npc.body.height * 0.5) - (player.y + player.body.height * 0.5)) < 30) {
-                    npc.tint = SHIRO_WITH_NII;
+            shiro.tint = SHIRO_NO_NII;
+            if(Math.abs((shiro.x + shiro.body.width * 0.5) - (player.x + player.body.width * 0.5)) < 30) {
+                shiro.body.velocity.x = 0;
+                if(Math.abs((shiro.y + shiro.body.height * 0.5) - (player.y + player.body.height * 0.5)) < 30) {
+                    shiro.tint = SHIRO_WITH_NII;
                 }
             }
-            else if(npc.x < player.x) {
-                npc.body.velocity.x = 150 + shiroSpeed;
-                npc.frame = 1;
+            else if(shiro.x < player.x) {
+                shiro.body.velocity.x = 150 + shiroSpeed;
+                shiro.frame = 1;
             }
-            else if(npc.x > player.x) {
-                npc.body.velocity.x = -150 - shiroSpeed;
-                npc.frame = 0;
+            else if(shiro.x > player.x) {
+                shiro.body.velocity.x = -150 - shiroSpeed;
+                shiro.frame = 0;
             }
 
-            if((npc.body.bottom - player.body.bottom) > 30) {
-                npc.body.velocity.y = -800;
+            if((shiro.body.bottom - player.body.bottom) > 30) {
+                shiro.body.velocity.y = -800;
             }
 
             if(Date.now() - timeOfSeduction > 3000) {
                 following = 0;
-                npc.body.velocity.x = 0;
+                shiro.body.velocity.x = 0;
                 shiroSpeed = 0;
-                npc.tint = SHIRO_NO_NII;
+                shiro.tint = SHIRO_NO_NII;
             }
         }
 
-		//game.physics.arcade.overlap(npc, stars, this.collectStar, null, this);
+		//game.physics.arcade.overlap(shiro, stars, this.collectStar, null, this);
 		oldFrame = player.frame;
 	},
 	
