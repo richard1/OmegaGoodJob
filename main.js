@@ -63,8 +63,11 @@ var main_state = {
 		// the player and its settings
 		player = game.add.sprite(32, game.world.height - 150, 'sora');
         shiro = game.add.sprite(16, 150, 'shiro');
+        steph = game.add.sprite(600, 300, 'steph');
+
         game.physics.arcade.enable(player);
  		game.physics.arcade.enable(shiro);
+        game.physics.arcade.enable(steph);
  
 		// player physics properties
 		player.body.bounce.y = 0.1;
@@ -76,16 +79,21 @@ var main_state = {
 		shiro.body.gravity.y = 1500;
 		shiro.body.collideWorldBounds = true;
  
-		// player's two animations, walking left and right
+        // steph physics properties
+		steph.body.bounce.y = 0.1;
+		steph.body.gravity.y = 1500;
+		steph.body.collideWorldBounds = true;
+		
+        // player's two animations, walking left and right
 		/*
 		player.animations.add('left', [0, 1, 2, 3], 10, true);
 		player.animations.add('right', [5, 6, 7, 8], 10, true);
 		*/
 		
 		player.frame = 1;
-
         shiro.frame = 0;
-	
+        steph.frame = 0;
+
 		cursors = game.input.keyboard.createCursorKeys();
 	
 		stars = game.add.group();
@@ -124,8 +132,8 @@ var main_state = {
 	update: function() {
 		//  Collide the player and the stars with the platforms
 		game.physics.arcade.collide(player, platforms);
-
         game.physics.arcade.collide(shiro, platforms);
+        game.physics.arcade.collide(steph, platforms);
         //game.physics.arcade.collide(stars, shiro);
 		
 		//  Reset the players velocity (movement)
