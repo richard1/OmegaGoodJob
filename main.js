@@ -4,12 +4,16 @@ var score = 0;
 var scoreText;
 var numStars = 0;
 var oldFrame = 1;
-var following = 0;
-var timeOfSeduction = 0;
+var shiroFollowing = 0;
+var shiroTimeOfSeduction = 0;
 var shiroSpeed = 0;
 var consecHits = 0;
 var nii = [];
 var currentNii = 0;
+var stephGoingRight = 1;
+var stephFollowing = 0;
+var stephSpeed = 0;
+var stephTimeOfSeduction = 0;
 
 // keyboard codes for key events
 var KEYCODE_A = 65;
@@ -20,6 +24,9 @@ var KEYCODE_SPACE = 32;
 var SHIRO_WITH_NII = 0xFFFFFF;
 var SHIRO_ALMOST_NII = 0xAAAAAA;
 var SHIRO_NO_NII = 0x555555;
+var STEPH_IN_LOVE = 0xFFFFFF;
+var STEPH_NO_LOVE = 0xFFC3E1;
+
 
 var main_state = {
 
@@ -174,7 +181,7 @@ var main_state = {
 		    game.physics.arcade.overlap(shiro, stars, this.collectStar, null, this);
         }
 
-        if(following === 1) {
+        if(shiroFollowing === 1) {
             shiro.tint = SHIRO_NO_NII;
             if(Math.abs((shiro.x + shiro.body.width * 0.5) - (player.x + player.body.width * 0.5)) < 30) {
                 shiro.body.velocity.x = 0;
@@ -195,11 +202,61 @@ var main_state = {
                 shiro.body.velocity.y = -800;
             }
 
-            if(Date.now() - timeOfSeduction > 3000) {
-                following = 0;
+            if(Date.now() - shiroTimeOfSeduction > 3000) {
+                shiroFollowing = 0;
                 shiro.body.velocity.x = 0;
                 shiroSpeed = 0;
                 shiro.tint = SHIRO_NO_NII;
+            }
+        }
+        
+        if(Phaser.Rectangle.intersects(steph.getBounds(), stars.getBounds())) {
+		    game.physics.arcade.overlap(steph, stars, this.collectStar, null, this);
+        }
+
+        if(stephFollowing === 0) {
+            steph.tint = STEPH_NO_LOVE;
+            if(stephGoingRight === 1) {
+                steph.body.velocity.x = 200;
+                steph.frame = 1;
+                if(steph.x + steph.body.width + 10 > game.world.width) {
+                    stephGoingRight = 0;
+                }
+            }
+            else {
+                steph.body.velocity.x = -200;
+                steph.frame = 0;
+                if(steph.x - 10 < 0) {
+                    stephGoingRight = 1;
+                }
+            }
+        }
+        else {
+            steph.tint = STEPH_IN_LOVE;
+            if(Math.abs((steph.x + steph.body.width * 0.5) - (player.x + player.body.width * 0.5)) < 30) {
+                steph.body.velocity.x = 0;
+                if(Math.abs((steph.y + steph.body.height * 0.5) - (player.y + player.body.height * 0.5)) < 30) {
+                    //shiro.tint = SHIRO_WITH_NII;
+                }
+            }
+            else if(steph.x < player.x) {
+                steph.body.velocity.x = 150 + stephSpeed;
+                steph.frame = 1;
+            }
+            else if(steph.x > player.x) {
+                steph.body.velocity.x = -150 - stephSpeed;
+                steph.frame = 0;
+            }
+
+            if((steph.body.bottom - player.body.bottom) > 30) {
+                steph.body.velocity.y = -800;
+            }
+
+            if(Date.now() - stephTimeOfSeduction > 3000) {
+                stephFollowing = 0;
+                steph.body.velocity.x = 0;
+                stephSpeed = 0;
+                steph.tint = STEPH_NO_LOVE;
             }
         }
 
@@ -258,12 +315,21 @@ var main_state = {
 		score += 10;
 		//scoreText.text = 'Score: ' + score;
 	
-        following = 1;
-        timeOfSeduction = Date.now();
-        if(shiroSpeed < 100)
-            shiroSpeed += 2;
-        if(!this.niiPlaying())
-            nii[(currentNii++ % nii.length)].play();
+        if(player === shiro) {
+            shiroFollowing = 1;
+            shiroTimeOfSeduction = Date.now();
+            if(shiroSpeed < 100)
+                shiroSpeed += 2;
+            if(!this.niiPlaying())
+                nii[(currentNii++ % nii.length)].play();
+        }
+        else if(player === steph) {
+            stephFollowing = 1;
+            stephTimeOfSeduction = Date.now();
+            if(stephSpeed < 100)
+                stephSpeed += 2;
+            // TODO sounds
+        }
 	},
 
     niiPlaying: function() {
