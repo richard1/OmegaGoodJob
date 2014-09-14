@@ -155,6 +155,7 @@ var main_state = {
         ];
 
         shiro.tint = SHIRO_NO_NII;
+        shiro.exists = false;
 	},
 
 	update: function() {
