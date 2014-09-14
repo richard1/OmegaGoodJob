@@ -14,12 +14,19 @@ var stephGoingRight = 1;
 var stephFollowing = 0;
 var stephSpeed = 0;
 var stephTimeOfSeduction = 0;
+var stephTimeOfRage = 0;
+var stephs = [];
+var currentSteph = 0;
+var shiroToggle = 0;
+var stephToggle = 0;
 
 // keyboard codes for key events
 var KEYCODE_A = 65;
 var KEYCODE_D = 68;
 var KEYCODE_S = 83;
 var KEYCODE_W = 87;
+var KEYCODE_1 = 49;
+var KEYCODE_2 = 50;
 var KEYCODE_SPACE = 32;
 var SHIRO_WITH_NII = 0xFFFFFF;
 var SHIRO_ALMOST_NII = 0xAAAAAA;
@@ -47,6 +54,12 @@ var main_state = {
         game.load.audio('nii6', 'assets/nii6.mp3');
         game.load.audio('nii7', 'assets/nii7.mp3');
         game.load.audio('nii8', 'assets/nii8.mp3');
+
+        game.load.audio('steph1', 'assets/steph1.mp3');
+        game.load.audio('steph2', 'assets/steph2.mp3');
+        game.load.audio('steph3', 'assets/steph3.mp3');
+        game.load.audio('steph4', 'assets/steph4.mp3');
+
 	},
 
 	create: function() {
@@ -97,7 +110,7 @@ var main_state = {
 		player.animations.add('right', [5, 6, 7, 8], 10, true);
 		*/
 		
-		player.frame = 1;
+		player.frame = 0;
         shiro.frame = 0;
         steph.frame = 0;
 
@@ -131,12 +144,29 @@ var main_state = {
             game.add.audio('nii5'),
             game.add.audio('nii6'),
             game.add.audio('nii7'),
-            game.add.audio('nii8'),
+            game.add.audio('nii8')
         ];
+        
+        stephs = [
+            game.add.audio('steph1'),
+            game.add.audio('steph2'),
+            game.add.audio('steph3'),
+            game.add.audio('steph4')
+        ];
+
         shiro.tint = SHIRO_NO_NII;
 	},
 
 	update: function() {
+        if(keyboard.isDown(KEYCODE_1) && Date.now() - shiroToggle > 500) {
+            shiro.exists = !shiro.exists;
+            shiroToggle = Date.now();
+        }
+        else if(keyboard.isDown(KEYCODE_2) && Date.now() - stephToggle > 500) {
+            steph.exists = !steph.exists;
+            stephToggle = Date.now();
+        }
+
 		//  Collide the player and the stars with the platforms
 		game.physics.arcade.collide(player, platforms);
         game.physics.arcade.collide(shiro, platforms);
@@ -151,14 +181,14 @@ var main_state = {
 			player.body.velocity.x = -150 - speed;
  
 			//player.animations.play('left');
-			player.frame = 1;
+			player.frame = 0;
 		}
 		else if (cursors.right.isDown || keyboard.isDown(KEYCODE_D)) {
 			//  Move to the right
 			player.body.velocity.x = 150 + speed;
  
 			//player.animations.play('right');
-			player.frame = 0;
+			player.frame = 1;
 		}
 		else {
 			//  Stand still
@@ -215,16 +245,35 @@ var main_state = {
         }
 
         if(stephFollowing === 0) {
-            steph.tint = STEPH_NO_LOVE;
             if(stephGoingRight === 1) {
-                steph.body.velocity.x = 200;
+                if(this.stephPlaying()) {
+                    steph.tint = STEPH_NO_LOVE;
+                    steph.body.velocity.x = 500;
+                    if(Math.random() < 0.01) {
+                        steph.body.velocity.y = -800;
+                    }
+                }
+                else {
+                    steph.tint = STEPH_IN_LOVE;
+                    steph.body.velocity.x = 100;
+                }
                 steph.frame = 1;
                 if(steph.x + steph.body.width + 10 > game.world.width) {
                     stephGoingRight = 0;
                 }
             }
             else {
-                steph.body.velocity.x = -200;
+                if(this.stephPlaying()) {
+                    steph.tint = STEPH_NO_LOVE;
+                    steph.body.velocity.x = -500;
+                    if(Math.random() < 0.01) {
+                        steph.body.velocity.y = -800;
+                    }
+                }
+                else {
+                    steph.tint = STEPH_IN_LOVE;
+                    steph.body.velocity.x = -100;
+                }
                 steph.frame = 0;
                 if(steph.x - 10 < 0) {
                     stephGoingRight = 1;
@@ -252,11 +301,12 @@ var main_state = {
                 steph.body.velocity.y = -800;
             }
 
-            if(Date.now() - stephTimeOfSeduction > 3000) {
+            if(Date.now() - stephTimeOfSeduction > 4000) {
                 stephFollowing = 0;
                 steph.body.velocity.x = 0;
                 stephSpeed = 0;
                 steph.tint = STEPH_NO_LOVE;
+                stephTimeOfRage = Date.now();
             }
         }
 
@@ -275,13 +325,13 @@ var main_state = {
 
 		if(x > playerX) {
 			//player.animations.play('right');
-			player.frame = 0;
-			oldFrame = 0;
+			player.frame = 1;
+			oldFrame = 1;
 		}
 		else {
 			//player.animations.play('left');
-			player.frame = 1;
-			oldFrame = 1;
+			player.frame = 0;
+			oldFrame = 0;
 		}
 				
 		var star = stars.create(playerX, playerY - 20, 'star');
@@ -323,18 +373,27 @@ var main_state = {
             if(!this.niiPlaying())
                 nii[(currentNii++ % nii.length)].play();
         }
-        else if(player === steph) {
+        else if(player === steph && stephFollowing === 0 && !this.stephPlaying()) {
             stephFollowing = 1;
             stephTimeOfSeduction = Date.now();
             if(stephSpeed < 100)
                 stephSpeed += 2;
-            // TODO sounds
+            //if(!this.stephPlaying())
+                stephs[(currentSteph++ % stephs.length)].play();
         }
 	},
 
     niiPlaying: function() {
         for(var i = 0; i < nii.length; i++) {
             if(nii[i].isPlaying)
+                return true;
+        }
+        return false;
+    },
+
+    stephPlaying: function() {
+        for(var i = 0; i < stephs.length; i++) {
+            if(stephs[i].isPlaying)
                 return true;
         }
         return false;
