@@ -27,9 +27,9 @@ var main_state = {
 		game.load.image('sky', 'assets/bg.png');
 		game.load.image('ground', 'assets/platform2.png');
 		game.load.image('star', 'assets/heart.png');
-		//game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
 		game.load.spritesheet('shiro', 'assets/shirosprite.png', 80, 80);
         game.load.spritesheet('sora', 'assets/sorasprite.png', 80, 80);
+        game.load.spritesheet('steph', 'assets/stephsprite.png', 80, 80);
 		
 		game.load.audio('sfx', 'assets/shoot.wav');
         game.load.audio('nii1', 'assets/nii1.mp3');
@@ -93,10 +93,10 @@ var main_state = {
 	
 		//scoreText = game.add.text(16, 16, 'Stars: ' + numStars, { fontSize: '32px', fill: '#000' });
 		
-        //npc.body.rebound = true;
-		//npc.body.collideWorldBounds = true;
-		//game.physics.enable(npc, Phaser.Physics.ARCADE);
-		//npc.body.bounce.setTo(1, 1);
+        npc.body.rebound = true;
+		npc.body.collideWorldBounds = true;
+		game.physics.enable(npc, Phaser.Physics.ARCADE);
+		npc.body.bounce.setTo(1, 1);
 		
 		mouse = new Phaser.Mouse(game);
 		mouse.start();
